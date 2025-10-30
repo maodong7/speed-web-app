@@ -1,34 +1,37 @@
 name: SPEED CI Pipeline
-on: [push, pull_request]  # 代码推送、创建PR时自动触发CI
+on: [push, pull_request]
 jobs:
   lint-and-test:
-    runs-on: ubuntu-latest  # 运行环境：Ubuntu服务器（行业通用，无需改）
+    runs-on: ubuntu-latest
     steps:
-      # 步骤1：拉取GitHub仓库代码到CI服务器
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 步骤2：安装Node.js（匹配本地v20版本，避免依赖冲突）
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'  # 缓存npm依赖，加速后续安装
+          cache: 'npm'
+          # 显式指定锁文件路径，适配多目录结构
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            frontend/package-lock.json
 
-      # 步骤3：后端（Nest.js）依赖安装+代码规范检查+单元测试
+      # 后端依赖安装（改用npm install，避免ci对锁文件的强依赖）
       - name: Install backend dependencies
-        run: cd backend && npm ci  # 严格按package-lock.json安装，确保版本一致
-      - name: Run backend lint (代码规范检查)
-        run: cd backend && npm run lint  # Nest初始化默认带lint脚本，检查代码格式
-      - name: Run backend unit tests (单元测试)
-        run: cd backend && npm run test  # 运行后端默认测试（如app.service.spec.ts）
+        run: cd backend && npm install
+      - name: Run backend lint
+        run: cd backend && npm run lint
+      - name: Run backend unit tests
+        run: cd backend && npm run test
 
-      # 步骤4：前端（Next.js）依赖安装+代码规范检查+单元测试
+      # 前端依赖安装（改用npm install）
       - name: Install frontend dependencies
-        run: cd frontend && npm ci
-      - name: Run frontend lint (代码规范检查)
-        run: cd frontend && npm run lint  # Next初始化默认带lint脚本
+        run: cd frontend && npm install
+      - name: Run frontend lint
+        run: cd frontend && npm run lint
       - name: Install frontend test dependencies
-        run: cd frontend && npm i -D @testing-library/react @testing-library/jest-dom  # 补充前端测试依赖
-      - name: Run frontend unit tests (单元测试)
-        run: cd frontend && npm run test  # 运行前端测试（需先安装上述依赖）
+        run: cd frontend && npm i -D @testing-library/react @testing-library/jest-dom
+      - name: Run frontend unit tests
+        run: cd frontend && npm run test
