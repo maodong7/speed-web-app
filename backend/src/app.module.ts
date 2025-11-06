@@ -1,14 +1,15 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { SubmissionModule } from './submission/submission.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    // 修复：添加类型断言，确保参数为字符串
-    MongooseModule.forRoot(process.env.MONGODB_URI as string),
+    MongooseModule.forRoot(process.env.MONGODB_URI!),
+    SubmissionModule
   ],
   controllers: [AppController],
   providers: [AppService],
